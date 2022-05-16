@@ -1,0 +1,9 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-ci
+  namespace: "{env}-{name}"
+spec:
+  namespaceSelector:
+    matchLabels:
+      name: "ci-{name}"

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ClusterResourceQuota
+metadata:
+  name: "{name}"
+spec:
+  quota: 
+    hard:
+      requests.cpu: "{cpu_request}"
+      requests.memory: "{mem_request}"
+      limits.cpu: "{cpu_limit}"
+      limits.memory: "{mem_limit}"
+  selector:
+    labels:
+       quota: "{name}"
