@@ -1,4 +1,8 @@
+#Summary
 
+#Getting started
+
+#Example CR
 
 ```yaml
 apiVersion: "jonasg.be/v1"
