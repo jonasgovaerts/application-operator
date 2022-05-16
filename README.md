@@ -1,6 +1,6 @@
 
 
-´´´yaml
+```yaml
 apiVersion: "jonasg.be/v1"
 kind: Application
 metadata:
@@ -22,4 +22,4 @@ spec:
       memory: "4"
       storage: "1"
   defaultNetworkPolicies: true
-´´´
+```
