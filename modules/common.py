@@ -64,7 +64,9 @@ class common_client:
 
             path = os.path.abspath('./templates/quota.yaml')
             tmpl = open(path, 'rt').read()
-            text = tmpl.format(name=app, ns=ns, requests_cpu=requests_cpu, requests_memory=requests_memory, requests_ephemeral_storage=requests_ephemeral_storage, limits_cpu=limits_cpu, limits_memory=limits_memory, limits_ephemeral_storage=limits_ephemeral_storage)
+            text = tmpl.format(name=app, ns=ns, requests_cpu=requests_cpu, requests_memory=requests_memory, 
+                    requests_ephemeral_storage=requests_ephemeral_storage, limits_cpu=limits_cpu, limits_memory=limits_memory, 
+                    limits_ephemeral_storage=limits_ephemeral_storage)
             data = yaml.safe_load(text)
             response = kubernetes.utils.create_from_dict(self.k8s_client, data)
             return response
