@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: "{name}"
+  namespace: "{ns}"
+spec:
+  hard:
+    requests.cpu: "{requests_cpu}"
+    requests.memory: "{requests_memory}"
+    requests.ephemeral-storage: "{requests_ephemeral_storage}"
+    limits.cpu: "{limits_cpu}"
+    limits.memory: "{limits_memory}"
+    limits.ephemeral-storage: "{limits_ephemeral_storage}"

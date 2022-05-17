@@ -10,13 +10,41 @@ spec:
     - uat
     - prd
   quota:
-    requests:
-      cpu: "1"
-      memory: "1"
-      storage: "1"
-    limits:
-      cpu: "4"
-      memory: "4"
-      storage: "1"
+     - env: "ci"
+       requests:
+         cpu: "1"
+         memory: "1"
+         ephemeral-storage: "1"
+       limits:
+         cpu: "4"
+         memory: "4"
+         ephemeral-storage: "1"
+     - env: "dev"
+       requests:
+         cpu: "1"
+         memory: "1"
+         ephemeral-storage: "1"
+       limits:
+         cpu: "4"
+         memory: "4"
+         ephemeral-storage: "1"
+     - env: "uat"
+       requests:
+         cpu: "1"
+         memory: "1"
+         ephemeral-storage: "1"
+       limits:
+         cpu: "4"
+         memory: "4"
+         ephemeral-storage: "1"
+     - env: "prd"
+       requests:
+         cpu: "1"
+         memory: "1"
+         ephemeral-storage: "1"
+       limits:
+         cpu: "4"
+         memory: "4"
+         ephemeral-storage: "1"
   defaultNetworkPolicies: true
   pullSecret: '{"auths":{"test":{"auth":"test"}}}'

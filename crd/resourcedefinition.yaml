@@ -23,26 +23,30 @@ spec:
                 app:
                   type: string
                 quota:
-                  type: object
-                  properties:
-                    requests:
-                      type: object
-                      properties:
-                        cpu:
-                          type: string
-                        memory:
-                          type: string
-                        storage:
-                          type: string
-                    limits:
-                      type: object
-                      properties:
-                        cpu:
-                          type: string
-                        memory:
-                          type: string
-                        storage:
-                          type: string
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      env:
+                       type: string
+                      requests:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string
+                          ephemeral-storage:
+                            type: string
+                      limits:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string
+                          ephemeral-storage:
+                            type: string
                 environments:
                   type: array
                   items:

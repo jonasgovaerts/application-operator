@@ -1,0 +1,30 @@
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    name: allow-from-ci
+    namespace: "{ns}"
+  spec:
+    ingress:
+    - from:
+      namespaceSelector:
+        matchLabels:
+          name: "ci-{name}"
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    name: allow-from-default
+    namespace: "{ns}"
+  spec:
+    ingress:
+    - from:
+      namespaceSelector:
+        matchLabels:
+          name: default
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    name: default-deny-ingress
+    namespace: "{ns}"
+  spec:
+    policyTypes:
+    - Ingress
