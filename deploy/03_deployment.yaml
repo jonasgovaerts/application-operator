@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: application-operator
+  namespace: operators
+  labels:
+    app: application-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: application-operator
+  template:
+    metadata:
+      labels:
+        app: application-operator
+    spec:
+      containers:
+      - name: application-operator
+        image: jonasgovaerts/application-operator:latest
+        imagePullPolicy: IfNotPresent
+      serviceAccountName: application-operator
