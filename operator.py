@@ -6,20 +6,11 @@ import kubernetes
 import logging
 import yaml
 import base64
+import modules.common
+#import modules.k8s
+#import modules.ocp
 
 
-def create_namespaces(k8s_client, app, environments):
-    path = os.path.abspath('./templates/namespace.yaml')
-    tmpl = open(path, 'rt').read()
-
-    for environment in environments:
-        namespace_name = environment+"-"+app
-        text = tmpl.format(name=namespace_name, app=app)
-        data = yaml.safe_load(text)
-
-        obj = kubernetes.utils.create_from_dict(k8s_client, data)
-    
-    return True
 
 def create_quota(k8s_client, app, quota):
     cpu_request = quota['requests']['cpu']
@@ -52,21 +43,10 @@ def create_default_network_policies(k8s_client,app, environments):
 
     return True
 
-def create_pullsecret(k8s_client,app, environments,pullSecret):
-    path = os.path.abspath('./templates/pullsecret.yaml')
-    tmpl = open(path, 'rt').read()
-
-    for environment in environments:
-        text = tmpl.format(name=app, secret=base64.b64encode(pullSecret.encode('ascii')).decode(),env=environment)
-        data = yaml.safe_load(text)
-        kubernetes.utils.create_from_dict(k8s_client, data)
-
-    return True
-
-
 @kopf.on.create('applications')
 def create_fn(spec, name, namespace, logger, **kwargs):
    
+    type = spec.get('type')
     app = spec.get('app')
     environments = spec.get('environments')
     quota = spec.get('quota')
@@ -74,11 +54,17 @@ def create_fn(spec, name, namespace, logger, **kwargs):
     pullSecret = spec.get('pullSecret')
     k8s_client = kubernetes.client.ApiClient()
 
-    result = create_namespaces(k8s_client, app, environments)
-    if result:
-        logger.info("Namespaces for "+app+" are created sucessfully: "+str(environments))
-    else:
-        logger.info("Failed to create namespaces for "+app)
+    common_client = modules.common.common_client(k8s_client)
+
+    if type == "k8s":
+        for env in environments:
+            # Create namespace
+            obj = common_client.namespace.create(app=app, env=env)
+            logger.info(str(obj))
+
+            # Create pullsecrets in all environments
+            obj = modules.common.common_client.pullSecret.create(app=app, env=env, pullSecret=pullSecret)
+            logger.info(str(obj))
 
     result = create_quota(k8s_client, app, quota)
     if result:
@@ -92,9 +78,3 @@ def create_fn(spec, name, namespace, logger, **kwargs):
             logger.info("networkPolcies for "+app+" are created sucessfully: ")
         else:
             logger.info("Failed to create networkpolicies for "+app)
-
-    result = create_pullsecret(k8s_client,app, environments,pullSecret)
-    if result:
-        logger.info("Pullsecrets for "+app+" are created sucessfully: "+str(environments))
-    else:
-        logger.info("Failed to create pullsecrets for "+app)
