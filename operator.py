@@ -5,6 +5,7 @@ import os
 import kubernetes
 import logging
 import yaml
+import base64
 
 
 def create_namespaces(k8s_client, app, environments):
@@ -51,6 +52,17 @@ def create_default_network_policies(k8s_client,app, environments):
 
     return True
 
+def create_pullsecret(k8s_client,app, environments,pullSecret):
+    path = os.path.abspath('./templates/pullsecret.yaml')
+    tmpl = open(path, 'rt').read()
+
+    for environment in environments:
+        text = tmpl.format(name=app, secret=base64.b64encode(pullSecret.encode('ascii')).decode(),env=environment)
+        data = yaml.safe_load(text)
+        kubernetes.utils.create_from_dict(k8s_client, data)
+
+    return True
+
 
 @kopf.on.create('applications')
 def create_fn(spec, name, namespace, logger, **kwargs):
@@ -59,6 +71,7 @@ def create_fn(spec, name, namespace, logger, **kwargs):
     environments = spec.get('environments')
     quota = spec.get('quota')
     default_network_policies = spec.get('defaultNetworkPolicies')
+    pullSecret = spec.get('pullSecret')
     k8s_client = kubernetes.client.ApiClient()
 
     result = create_namespaces(k8s_client, app, environments)
@@ -79,3 +92,9 @@ def create_fn(spec, name, namespace, logger, **kwargs):
             logger.info("networkPolcies for "+app+" are created sucessfully: ")
         else:
             logger.info("Failed to create networkpolicies for "+app)
+
+    result = create_pullsecret(k8s_client,app, environments,pullSecret)
+    if result:
+        logger.info("Pullsecrets for "+app+" are created sucessfully: "+str(environments))
+    else:
+        logger.info("Failed to create pullsecrets for "+app)

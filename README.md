@@ -1,4 +1,9 @@
 # Summary
+This project contains a k8s operator which manages, if applicable, following objects
+- namespace
+- ClusterResourceQuota (openshift only)
+- networkpolicies
+- pull secret
 
 # Getting started
 
@@ -19,11 +24,12 @@ spec:
   quota:
     requests:
       cpu: "1"
-      memory: "1"
-      storage: "1"
+      memory: "1Gi"
+      storage: "1Gi"
     limits:
       cpu: "4"
-      memory: "4"
-      storage: "1"
+      memory: "4Gi"
+      storage: "1Gi"
   defaultNetworkPolicies: true
+  pullSecret: '{"auths":{"test":{"auth":"test"}}}'
 ```

@@ -19,3 +19,4 @@ spec:
       memory: "4"
       storage: "1"
   defaultNetworkPolicies: true
+  pullSecret: '{"auths":{"test":{"auth":"test"}}}'

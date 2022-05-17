@@ -49,6 +49,8 @@ spec:
                     type: string
                 defaultNetworkPolicies:
                   type: boolean
+                pullSecret:
+                  type: string
   # either Namespaced or Cluster
   scope: Cluster
   names:
