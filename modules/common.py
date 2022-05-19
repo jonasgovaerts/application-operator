@@ -16,14 +16,31 @@ class common_client:
         response = utils.create_from_dict(self.k8s_client, data)
         return response
     
-    def pullSecret(self, ns, pullSecret):
-        path = os.path.abspath('./templates/pullsecret.yaml')
-        tmpl = open(path, 'rt').read()
-        text = tmpl.format(ns=ns, secret=base64.b64encode(pullSecret.encode('ascii')).decode())
-        data = yaml.safe_load(text)
-        response = utils.create_from_dict(self.k8s_client, data)
-        return response
+    def pullSecret(self, action, ns, pullSecret):
+        def create(ns,pullSecret):
+            secret =  base64.b64encode(pullSecret.encode('ascii')).decode()
 
+            #body = client.V1Secret()
+            #body.api_version = 'v1'
+            #body.data = {'secret':secret}
+            #body.kind = 'Secret'
+            #body.metadata = {'name': 'pullsecret'}
+            #body.type = 'dockerconfigjson'
+
+            body = {"metadata":{"name":"pullsecret"},"data":{".dockerconfigjson": secret},"type":"kubernetes.io/dockerconfigjson"}
+            response = self.api.create_namespaced_secret(namespace=ns, body=body)
+            return response
+
+        def patch(ns,pullSecret):
+            secret =  base64.b64encode(pullSecret.encode('ascii')).decode()
+            body = {"data": {".dockerconfigjson": secret }}
+            response = self.api.patch_namespaced_secret(name="pullsecret", namespace=ns, body=body)
+            return response
+
+        if action == "create":
+            create(ns, pullSecret)
+        elif action == "patch":
+            patch(ns, pullSecret)
 
     def quota(self, action, app, ns, quota):
         def create(app, ns, quota):

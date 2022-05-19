@@ -15,7 +15,6 @@ def gather_spec(spec):
 
     return app, environments, quotas, default_network_policies, pullSecret
 
-
 @kopf.on.create('applications')
 def create_fn(spec, logger, **kwargs):
     app, environments, quotas, default_network_policies, pullSecret = gather_spec(spec) 
@@ -26,17 +25,17 @@ def create_fn(spec, logger, **kwargs):
         ns = env+"-"+app
         # Create namespace
         obj = common_client.namespace(ns=ns)
-        logger.info(obj)
+        logger.info("Sucessfully created namespace "+ns)
 
-        # Create pullsecrets in all environments
-        obj = common_client.pullSecret(ns=ns, pullSecret=pullSecret)
-        logger.info(obj)
+        # Create pullsecrets
+        obj = common_client.pullSecret(action=action, ns=ns, pullSecret=pullSecret)
+        logger.info("Successfully created pullsecret in ns "+ns)
 
-        # Create default network policies in all environments
+        # Create default network policies
         obj = common_client.default_network_policies(ns=ns, app=app)
-        logger.info(obj)
+        logger.info("Successfully created default network policies in ns "+ns)
 
-        # Create quota in all environments
+        # Create quota
         index = 0
         for quota in quotas:
             if quota['env'] == env:
@@ -45,7 +44,7 @@ def create_fn(spec, logger, **kwargs):
                 index = index+1
             
         obj = common_client.quota(action=action, ns=ns, app=app, quota=quotas[index])
-        logger.info(obj)
+        logger.info("Successfully created quota in ns "+ns)
 
 @kopf.on.update('applications')
 def update_fn(spec, status, namespace, logger, **kwargs):
@@ -56,7 +55,11 @@ def update_fn(spec, status, namespace, logger, **kwargs):
     for env in environments:
         ns = env+"-"+app
 
-        # Create quota in all environments
+        # reconsile pullsecret in all environments
+        obj = common_client.pullSecret(action=action, ns=ns, pullSecret=pullSecret)
+        logger.info(obj)
+
+        # reconsile quota in all environments
         index = 0
         for quota in quotas:
             if quota['env'] == env:
@@ -81,4 +84,4 @@ def delete_fn(spec, logger, **kwargs):
         k8s_client = kubernetes.client.api_client.ApiClient()
         core_v1 = kubernetes.client.CoreV1Api(api_client=k8s_client)
         obj = core_v1.delete_namespace(name=ns)
-        logger.info(obj)
+        logger.info("Successfully deleted namespace "+ns)
