@@ -17,6 +17,6 @@ spec:
     spec:
       containers:
       - name: application-operator
-        image: jonasgovaerts/application-operator:latest
+        image: docker.io/govaertsjonas/application-operator:dev
         imagePullPolicy: IfNotPresent
       serviceAccountName: application-operator
