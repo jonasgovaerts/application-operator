@@ -2,7 +2,7 @@
   kind: NetworkPolicy
   metadata:
     name: allow-from-ci
-    namespace: "{ns}"
+    namespace: "{namespace}"
   spec:
     ingress:
     - from:
@@ -13,7 +13,7 @@
   kind: NetworkPolicy
   metadata:
     name: allow-from-default
-    namespace: "{ns}"
+    namespace: "{namespace}"
   spec:
     ingress:
     - from:
@@ -24,7 +24,7 @@
   kind: NetworkPolicy
   metadata:
     name: default-deny-ingress
-    namespace: "{ns}"
+    namespace: "{namespace}"
   spec:
     policyTypes:
     - Ingress
