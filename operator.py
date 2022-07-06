@@ -1,62 +1,80 @@
 #!/bin/python3.10
+"""
+    k8s operator in kubernetes operator python framework
+    This operator creates namespace, pullsecret, quota and networkpolicies
+"""
 
+import asyncio
 import kopf
-import os
-import kubernetes
-import logging
-import modules.common
+from modules.pull_secret import PullSecret
+from modules.quota import Quota
+from modules.default_network_policies import DefaultNetworkPolicies
+from modules.namespace import Namespace
 
 def gather_spec(spec):
+    """ function to get info from CR spec """
     app = spec.get('app')
     environments = spec.get('environments')
     quotas = spec.get('quota')
     default_network_policies = spec.get('defaultNetworkPolicies')
-    pullSecret = spec.get('pullSecret')
+    pull_secret = spec.get('pullSecret')
 
-    return app, environments, quotas, default_network_policies, pullSecret
+    return app, environments, quotas, default_network_policies, pull_secret
 
 @kopf.on.create('applications')
-def create_fn(spec, logger, **kwargs):
-    app, environments, quotas, default_network_policies, pullSecret = gather_spec(spec) 
-    action = "create"
-    common_client = modules.common.common_client()
+def create_fn(spec, logger, patch, **_kwargs):
+    """ Create function which executes code after CR gets created """
+    app, environments, quotas, default_network_policies, _pull_secret = gather_spec(spec)
 
     for env in environments:
-        ns = env+"-"+app
+        _namespace = env+"-"+app
         # Create namespace
-        obj = common_client.namespace(ns=ns)
-        logger.info("Sucessfully created namespace "+ns)
+        namespace = Namespace(namespace=_namespace)
+        namespace.create()
+        logger.info("Sucessfully created namespace "+_namespace)
 
         # Create pullsecrets
-        obj = common_client.pullSecret(action=action, ns=ns, pullSecret=pullSecret)
-        logger.info("Successfully created pullsecret in ns "+ns)
+        pull_secret = PullSecret(namespace=_namespace, pull_secret=_pull_secret)
+        asyncio.run(pull_secret.create())
+        logger.info("Successfully created pullsecret in namespace "+_namespace)
 
         # Create default network policies
-        obj = common_client.default_network_policies(ns=ns, app=app)
-        logger.info("Successfully created default network policies in ns "+ns)
+        default_network_policies = DefaultNetworkPolicies(namespace=_namespace, app=app)
+        asyncio.run(default_network_policies.create())
+        logger.info("Successfully created default network policies in namespace "+_namespace)
 
         # Create quota
         index = 0
         for quota in quotas:
             if quota['env'] == env:
                 break
-            else:
-                index = index+1
-            
-        obj = common_client.quota(action=action, ns=ns, app=app, quota=quotas[index])
-        logger.info("Successfully created quota in ns "+ns)
+            index = index+1
+
+        quota = Quota(namespace=_namespace, quota=quotas[index])
+        asyncio.run(quota.create())
+        logger.info("Successfully created quota in namespace "+_namespace)
+
+    namespaces_created = True
+    pull_secrets_created = True
+    default_network_policies_created = True
+    quota_created = True
+
+    patch.status["namespaces_created"] = namespaces_created
+    patch.status["pull_secrets_created"] = pull_secrets_created
+    patch.status["default_network_policies_created"] = default_network_policies_created
+    patch.status["quota_created"] = quota_created
 
 @kopf.on.update('applications')
-def update_fn(spec, status, namespace, logger, **kwargs):
-    app, environments, quotas, default_network_policies, pullSecret = gather_spec(spec)
-    action = "patch"
-    common_client = modules.common.common_client()
+def update_fn(spec, logger, **_kwargs):
+    """ Function wich executes code after the CR gets patched """
+    app, environments, quotas, default_network_policies, _pull_secret = gather_spec(spec)
 
     for env in environments:
-        ns = env+"-"+app
+        _namespace = env+"-"+app
 
         # reconsile pullsecret in all environments
-        obj = common_client.pullSecret(action=action, ns=ns, pullSecret=pullSecret)
+        pull_secret = PullSecret(namespace=_namespace, pull_secret=_pull_secret)
+        obj = asyncio.run(pull_secret.patch())
         logger.info(obj)
 
         # reconsile quota in all environments
@@ -64,24 +82,19 @@ def update_fn(spec, status, namespace, logger, **kwargs):
         for quota in quotas:
             if quota['env'] == env:
                 break
-            else:
-                index = index+1
-
-        obj = common_client.quota(action=action, ns=ns, app=app, quota=quotas[index])
+            index = index+1
+        quota = Quota(namespace=_namespace, quota=quotas[index])
+        obj = asyncio.run(quota.patch())
         logger.info(obj)
 
-@kopf.on.resume('applications')
-def resume_fn(spec, status, namespace, logger, **kwargs):
-    app, environments, quotas, default_network_policies, pullSecret = gather_spec(spec)
-
 @kopf.on.delete('applications')
-def delete_fn(spec, logger, **kwargs):
+def delete_fn(spec, logger, **_kwargs):
+    """ Function which executes code afer the CR gets deleted """
     app = spec.get('app')
     environments = spec.get('environments')
 
     for env in environments:
-        ns = env+"-"+app
-        k8s_client = kubernetes.client.api_client.ApiClient()
-        core_v1 = kubernetes.client.CoreV1Api(api_client=k8s_client)
-        obj = core_v1.delete_namespace(name=ns)
-        logger.info("Successfully deleted namespace "+ns)
+        _namespace = env+"-"+app
+        namespace = Namespace(namespace=_namespace)
+        namespace.delete()
+        logger.info("Successfully deleted namespace "+_namespace)

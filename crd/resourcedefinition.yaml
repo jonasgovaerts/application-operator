@@ -6,6 +6,18 @@ metadata:
 spec:
   # group name to use for REST API: /apis/<group>/<version>
   group: jonasg.be
+  # either Namespaced or Cluster
+  scope: Cluster
+  names:
+    # plural name to be used in the URL: /apis/<group>/<version>/<plural>
+    plural: applications
+    # singular name to be used as an alias on the CLI and for display
+    singular: application
+    # kind is normally the CamelCased singular type. Your resource manifests use this.
+    kind: Application
+    # shortNames allow shorter string to match your resource on the CLI
+    shortNames:
+    - app
   # list of versions supported by this CustomResourceDefinition
   versions:
     - name: v1
@@ -55,15 +67,22 @@ spec:
                   type: boolean
                 pullSecret:
                   type: string
-  # either Namespaced or Cluster
-  scope: Cluster
-  names:
-    # plural name to be used in the URL: /apis/<group>/<version>/<plural>
-    plural: applications
-    # singular name to be used as an alias on the CLI and for display
-    singular: application
-    # kind is normally the CamelCased singular type. Your resource manifests use this.
-    kind: Application
-    # shortNames allow shorter string to match your resource on the CLI
-    shortNames:
-    - app
+            status:
+              type: object
+              properties:
+                 namespaces_created:
+                    type: boolean
+                 pull_secrets_created:
+                    type: boolean
+                 default_network_policies_created:
+                    type: boolean
+                 quota_created:
+                    type: boolean
+      additionalPrinterColumns:
+      - name: App
+        type: string
+        description: The name of the application
+        jsonPath: .spec.app
+      - name: Age
+        type: date
+        jsonPath: .metadata.creationTimestamp
