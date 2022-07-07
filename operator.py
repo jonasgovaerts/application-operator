@@ -22,6 +22,7 @@ def gather_spec(spec):
     return app, environments, quotas, default_network_policies, pull_secret
 
 @kopf.on.create('applications')
+# pylint: disable=too-many-locals
 def create_fn(spec, logger, patch, **_kwargs):
     """ Create function which executes code after CR gets created """
     app, environments, quotas, default_network_policies, _pull_secret = gather_spec(spec)
@@ -85,6 +86,11 @@ def update_fn(spec, logger, **_kwargs):
             index = index+1
         quota = Quota(namespace=_namespace, quota=quotas[index])
         obj = asyncio.run(quota.patch())
+        logger.info(obj)
+
+        # reconsile default network policies
+        default_network_policies = DefaultNetworkPolicies(namespace=_namespace, app=app)
+        obj = asyncio.run(default_network_policies.patch())
         logger.info(obj)
 
 @kopf.on.delete('applications')

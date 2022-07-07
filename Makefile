@@ -17,3 +17,6 @@ push: ## Push the container
 release: build login push
 
 kind-load: build 
+
+lint:
+	pytest --pylint -m pylint	
