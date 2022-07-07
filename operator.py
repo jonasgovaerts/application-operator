@@ -89,9 +89,9 @@ def update_fn(spec, logger, **_kwargs):
         logger.info(obj)
 
         # reconsile default network policies
-        default_network_policies = DefaultNetworkPolicies(namespace=_namespace, app=app)
-        obj = asyncio.run(default_network_policies.patch())
-        logger.info(obj)
+       # default_network_policies = DefaultNetworkPolicies(namespace=_namespace, app=app)
+       # obj = asyncio.run(default_network_policies.patch())
+       # logger.info(obj)
 
 @kopf.on.delete('applications')
 def delete_fn(spec, logger, **_kwargs):
